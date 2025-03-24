@@ -1,6 +1,7 @@
 package com.example.agendator.services;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,17 +22,18 @@ public class JwtService {
 		Instant now = Instant.now();
 		long expiry = 86400L;
 		
-		String scopes = authentication.getAuthorities().stream()
-			    .map(GrantedAuthority::getAuthority)
-			    .collect(Collectors.joining(" "));
+		List<String> authorities = authentication.getAuthorities().stream()
+		        .map(GrantedAuthority::getAuthority)
+		        .collect(Collectors.toList());
 		
 		var claims = JwtClaimsSet.builder().issuer("spring-security-jwt")
 				.issuedAt(now)
 				.expiresAt(now.plusSeconds(expiry))
 				.subject(authentication.getName())
-				.claim("scope", scopes)
+				.claim("authorities", authorities)
 				.build();
 				
 		return encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
 	}
+	
 }

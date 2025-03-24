@@ -6,6 +6,7 @@ import java.security.interfaces.RSAPublicKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -30,20 +31,27 @@ public class SecurityConfig {
 	@Value("${jwt.private.key}")
 	private RSAPrivateKey priv;
 	
+	//private static final String[] PUBLIC_AUTH = { "TBD", "TBD" };
+	
+	//private static final String[] PUBLIC_GET = { "TBD", "TBD" };
+	
+	//private static final String[] OPERATOR = { "TBD" };
+	
+	private static final String[] ADMIN = {"/users/**"};	
+	
 	@Bean
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
 		http.csrf(csrf -> csrf.disable())
-		.authorizeHttpRequests(
-			auth -> auth.requestMatchers("/authenticate").permitAll()
+			.authorizeHttpRequests(auth -> auth
+			.requestMatchers("/authenticate").permitAll()
+			.requestMatchers(HttpMethod.GET, ADMIN).hasAuthority("ROLE_ADMIN")
 			.anyRequest().authenticated())
-		.httpBasic(Customizer.withDefaults())
-		.oauth2ResourceServer(
-			conf -> conf.jwt(Customizer.withDefaults()));
+			.httpBasic(Customizer.withDefaults())
+			.oauth2ResourceServer(conf -> conf.jwt(Customizer.withDefaults()));
 		
 		return http.build();
 	}
-	
 	
 	@Bean
 	JwtDecoder jwtDecoder() {
